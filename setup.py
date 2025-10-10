@@ -15,7 +15,7 @@ def get_package_data():
 
 setup(
     name="graphex-esxi-utils",
-    version="1.9.0",
+    version="1.9.1",
     author="The MITRE Corporation",
     description="A plugin for adding python esxi utils nodes to graphex.",
     packages=find_packages(include=["graphex-esxi-utils*"]),
