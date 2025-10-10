@@ -21,6 +21,6 @@ setup(
     packages=find_packages(include=["graphex-esxi-utils*"]),
     package_data=get_package_data(),
     python_requires=">=3.10",
-    install_requires=["graphex>=1.16.0", "esxi-utils>=3.22", "ping3==4.0.4", "pexpect==4.8.0"],
+    install_requires=["mitre-graphex>=1.16.0", "esxi-utils>=3.22", "ping3==4.0.4", "pexpect==4.8.0"],
     include_package_data=True
 )
