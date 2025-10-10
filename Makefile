@@ -21,9 +21,9 @@ install:
 
 remove:
 	rm -rf dist build
-	pip uninstall -y graphex_esxi_utils
+	pip uninstall -y graphex-esxi-utils
 
 docs:
-	@cd graphex_esxi_utils/docs && ./convertMarkdown.bash
+	@cd graphex-esxi-utils/docs && ./convertMarkdown.bash
 
 .PHONY: all build install remove docs
