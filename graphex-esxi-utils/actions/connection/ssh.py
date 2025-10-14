@@ -1,6 +1,6 @@
 from graphex import Boolean, String, Number, Node, InputSocket, OptionalInputSocket, ListInputSocket, OutputSocket, VariableOutputSocket
 from graphex_esxi_utils import esxi_constants, datatypes, exceptions
-from graphex-esxi-utils.utils import misc as misc_utils
+from graphex_esxi_utils.utils import misc as misc_utils
 import typing
 
 

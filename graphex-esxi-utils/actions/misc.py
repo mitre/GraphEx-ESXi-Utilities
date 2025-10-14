@@ -1,6 +1,6 @@
 from graphex import String, Boolean, Number, Node, InputSocket, OutputSocket, ListOutputSocket, ListInputSocket
 from graphex_esxi_utils import esxi_constants, datatypes
-from graphex-esxi-utils.utils import dynamic_networking as dynamic_networking_fns
+from graphex_esxi_utils.utils import dynamic_networking as dynamic_networking_fns
 import esxi_utils
 import typing
 import ipaddress

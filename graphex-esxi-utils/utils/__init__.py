@@ -1,4 +1,4 @@
-from graphex-esxi-utils.utils import misc, palo_alto
+from graphex_esxi_utils.utils import misc, palo_alto
 
 __all__ = [
     "misc",

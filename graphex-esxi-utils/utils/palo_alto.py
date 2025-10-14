@@ -2,7 +2,7 @@ import esxi_utils
 import time
 import typing
 from graphex_esxi_utils import exceptions, panos_constants
-from graphex-esxi-utils.utils import misc
+from graphex_esxi_utils.utils import misc
 
 
 def api_conn_refused(msg: str, check_for_credential_error: bool = True, raise_credential_error: bool = False) -> bool:

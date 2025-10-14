@@ -1,9 +1,9 @@
 from graphex import String, Number, Boolean, DataContainer, InputSocket, Node, OptionalInputSocket, OutputSocket, ListOutputSocket, VariableOutputSocket
 from graphex_esxi_utils import datatypes, esxi_constants, exceptions
-from graphex-esxi-utils.utils import misc as misc_utils
+from graphex_esxi_utils.utils import misc as misc_utils
 from graphex import exceptions as graphex_exceptions
-from graphex-esxi-utils.utils import misc as misc_utils
-from graphex-esxi-utils.utils import palo_alto as palo_alto_util_fns
+from graphex_esxi_utils.utils import misc as misc_utils
+from graphex_esxi_utils.utils import palo_alto as palo_alto_util_fns
 from graphex_esxi_utils import panos_constants
 import esxi_utils
 import ipaddress
