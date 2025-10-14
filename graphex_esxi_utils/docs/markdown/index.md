@@ -24,7 +24,7 @@ If your ESXi host is connected in a vCenter configuration, you will have to fill
 
 If your ESXi host is not connected in a vCenter configuration, then you only need to provide data to the first three input sockets (Host/Master IP, Username, and Password) in order to establish a connection.
 
-All nodes from this ESXi Utilties plugin package will be prefixed with the name: "graphex-esxi-utils". You can see this in blue text at the bottom of each node description in the left-hand sidebar panel (see image above). Additionally, nodes from this package strive to include the word "ESXi" somewhere in the title of the node.
+All nodes from this ESXi Utilties plugin package will be prefixed with the name: "graphex_esxi_utils". You can see this in blue text at the bottom of each node description in the left-hand sidebar panel (see image above). Additionally, nodes from this package strive to include the word "ESXi" somewhere in the title of the node.
 
 $note$ As seen in the above image, some nodes in this plugin enable you to save their output directly to a variable via a checkbox on the output socket. Notable examples at the time of this writing are: 'Connect to ESXi', 'Open SSH Connection' (any kind) and 'Open WinRM Connection'. Keep in mind that not all the images on these document pages are going to be updated just because a checkbox was added to the program. For more information on variables, please see the [core GraphEx documentation on the Sidebar Panel](../../ui/sidebar.html).
 

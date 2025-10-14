@@ -25,6 +25,6 @@ remove:
 	pip uninstall -y graphex-esxi-utils
 
 docs:
-	@cd graphex-esxi-utils/docs && ./convertMarkdown.bash
+	@cd graphex_esxi_utils/docs && ./convertMarkdown.bash
 
 .PHONY: all build install remove docs
