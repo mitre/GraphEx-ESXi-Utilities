@@ -9,7 +9,7 @@ from graphex import (Boolean, InputSocket, ListOutputSocket, Node, Number,
                      OptionalInputSocket, OutputSocket, String)
 from graphex import exceptions as graphex_exceptions
 
-from graphex-esxi-utils import (datatypes, esxi_constants, exceptions,
+from graphex_esxi_utils import (datatypes, esxi_constants, exceptions,
                                 panos_constants)
 from graphex-esxi-utils.utils import misc as misc_utils
 from graphex-esxi-utils.utils import palo_alto as palo_alto_util_fns

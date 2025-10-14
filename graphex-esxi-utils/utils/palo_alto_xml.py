@@ -15,10 +15,10 @@ import esxi_utils
 from esxi_utils.util.response import Response
 
 #
-import graphex-esxi-utils.panos_constants as c
-import graphex-esxi-utils.utils.misc as misc
+import graphex_esxi_utils.panos_constants as c
+import graphex_esxi_utils.utils.misc as misc
 from graphex-esxi-utils.utils.palo_alto import installing_wait_loop, wait_for_api_resp, parse_job_number
-from graphex-esxi-utils import exceptions
+from graphex_esxi_utils import exceptions
 
 
 def _parsefile(file) -> None:

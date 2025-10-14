@@ -1,5 +1,5 @@
 from graphex import String, Boolean, Number, Node, InputSocket, OutputSocket, ListOutputSocket
-from graphex-esxi-utils import esxi_constants, datatypes
+from graphex_esxi_utils import esxi_constants, datatypes
 import typing
 
 

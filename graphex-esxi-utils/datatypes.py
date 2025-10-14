@@ -1,5 +1,5 @@
 from graphex-esxi-utils.utils import interactive_ssh
-from graphex-esxi-utils import esxi_constants, exceptions
+from graphex_esxi_utils import esxi_constants, exceptions
 from graphex import exceptions as graphex_exceptions
 from graphex import String, DataContainer, Runtime, Boolean, Number
 from graphex.datatype import DataType

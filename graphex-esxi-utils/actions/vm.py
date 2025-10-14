@@ -5,7 +5,7 @@ import esxi_utils
 import tempfile
 from graphex import Boolean, InputSocket, ListInputSocket, ListOutputSocket, Node, Number, OptionalInputSocket, OutputSocket, String, DataContainer
 from graphex import exceptions as graphex_exceptions
-from graphex-esxi-utils import datatypes, esxi_constants
+from graphex_esxi_utils import datatypes, esxi_constants
 
 
 class EsxiVirtualMachineIsPoweredOn(Node):

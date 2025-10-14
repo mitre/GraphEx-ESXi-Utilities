@@ -1,4 +1,4 @@
-from graphex-esxi-utils import exceptions
+from graphex_esxi_utils import exceptions
 from time import time
 from os import path, makedirs, remove
 import esxi_utils
