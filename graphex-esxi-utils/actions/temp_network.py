@@ -1,6 +1,6 @@
 from graphex import Boolean, InputSocket, ListInputSocket, ListOutputSocket, Node, Number, OptionalInputSocket, OutputSocket, String
-from graphex-esxi-utils.utils.dynamic_networking import generate_id
-from graphex-esxi-utils import esxi_constants, datatypes
+from graphex_esxi_utils.utils.dynamic_networking import generate_id
+from graphex_esxi_utils import esxi_constants, datatypes
 import typing
 import time
 import uuid
