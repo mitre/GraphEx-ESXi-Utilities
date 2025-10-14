@@ -3,7 +3,7 @@ import os
 from setuptools import find_packages, setup
 
 def get_package_data():
-    ROOT_PATH = os.path.abspath("./graphex-esxi-utils")
+    ROOT_PATH = os.path.abspath("./graphex_esxi_utils")
     DOCS_PATH = os.path.join(ROOT_PATH, "docs")
     files = []
     for directory, _, filenames in os.walk(DOCS_PATH):
@@ -11,14 +11,14 @@ def get_package_data():
             path = os.path.join(directory, filename)
             path = path[len(ROOT_PATH) :].strip("/")
             files.append(path)
-    return {"graphex-esxi-utils": files}
+    return {"graphex_esxi_utils": files}
 
 setup(
     name="graphex-esxi-utils",
-    version="1.9.2",
+    version="1.9.3",
     author="The MITRE Corporation",
     description="A plugin for adding python esxi utils nodes to graphex.",
-    packages=find_packages(include=["graphex-esxi-utils*"]),
+    packages=find_packages(include=["graphex_esxi_utils*"]),
     package_data=get_package_data(),
     python_requires=">=3.10",
     install_requires=["mitre-graphex>=1.16.0", "esxi-utils>=3.22", "ping3==4.0.4", "pexpect==4.8.0"],
