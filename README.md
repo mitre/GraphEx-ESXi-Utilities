@@ -22,7 +22,7 @@ The code in this repo is not meant to be executed directly. It is an interface b
 
 # Plugin Documentation
 
-For documentation on this plugin, please read the offical documentation located at: [graphex_esxi_utils/docs/markdown/index.md](docs/md/index.md).
+For documentation on this plugin, please read the offical documentation in [the markdown documentation directory](graphex_esxi_utils/docs/markdown/index.md).
 <br />
 
 This documentation can also be reached from inside the Graphex UI itself by navigating to 'Help' -> 'Documentation (Tutorial)' on the menu bar.
