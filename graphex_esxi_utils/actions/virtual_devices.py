@@ -628,7 +628,7 @@ class EsxiVirtualDeviceNicSetNetwork(Node):
     color: str = esxi_constants.COLOR_VIRT_NIC
 
     nic = InputSocket(datatype=datatypes.VirtualDevice, name="NIC VirtualDevice", description="The NIC VirtualDevice to use.")
-    input_value = OutputSocket(datatype=String, name="Network Name", description="The name of the network to assign to this NIC.")
+    input_value = InputSocket(datatype=String, name="Network Name", description="The name of the network to assign to this NIC.")
 
     def log_prefix(self):
         return f"[{self.name} - '{self.nic.label}' on {self.nic._vm.name}] "
