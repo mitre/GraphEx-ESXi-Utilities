@@ -2,7 +2,7 @@ import os
 import io
 from pathlib import Path
 
-from setuptools import find_packages, setup
+from setuptools import find_namespace_packages, setup
 
 def get_package_data():
     ROOT_PATH = os.path.abspath("./graphex_esxi_utils")
@@ -48,7 +48,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Operating System :: OS Independent",
     ],
-    packages=find_packages(include=["graphex_esxi_utils*"]),
+    packages=find_namespace_packages(include=["graphex_esxi_utils*"]),
     package_data=get_package_data(),
     python_requires=">=3.10",
     install_requires=["mitre-graphex>=1.16.0", "esxi-utils>=3.22.1", "ping3==4.0.4", "pexpect==4.8.0"],
