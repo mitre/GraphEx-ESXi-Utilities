@@ -51,3 +51,7 @@ Sometimes you only need an SSH or WinRM connection to complete the task you want
 ## Keyboard Input
 
 Included in this package is the ability emulate keyboard input. [Please see the dedicated page on keyboard input](keycodes.md) for more information on available key names and hexidecimal codes.
+
+## Changelog
+
+The changelog for this plugin [can be found on this page.](changelog.md)
