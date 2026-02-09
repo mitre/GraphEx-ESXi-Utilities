@@ -1,3 +1,4 @@
+import datetime
 import math
 import os
 import typing
@@ -1510,3 +1511,42 @@ class EsxiVirtualMachineEnforceBIOSmenu(Node):
     def run(self):
         self.log(f"Setting enforce BIOS boot menu to '{self.enforce}'...")
         self.vm.force_bios_menu(self.enforce)
+
+class EsxiVirtualMachineBootTime(Node):
+    name: str = "ESXi Virtual Machine Get Boot Time"
+    description: str = "Gets a Unix Timestamp representing the time the VM was powered on. If an error occurs, the output Boot Time will be the number 0"
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Power"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to use.")
+    output = OutputSocket(
+        datatype=Number, name="Boot Time", description="A Unix Timestamp representing the time the VM was powered on."
+    )
+    success = OutputSocket(
+        datatype=Boolean, name="Was Successful", description="This boolean will be True if the number retrieved is the actual boot time. The boolean will be False if an error occurred instead."
+    )
+
+    def run(self):
+        dt: datetime.datetime = self.vm.bootTime
+        self.success = False
+        self.output = 0
+        if dt is None:
+            return
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        self.output = int(dt.timestamp() * 1000)
+        self.success = True
+
+class EsxiVirtualMachineRuntimeConnected(Node):
+    name: str = "ESXi Virtual Machine Is Runtime Connected"
+    description: str = "Returns True or False based on the status of the virtual machine being connected according to its runtime."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to use.")
+    connectedStatus = OutputSocket(
+        datatype=Boolean, name="Connected", description="Returns True or False based on the status of the virtual machine being connected according to its runtime."
+    )
+
+    def run(self):
+        self.connectedStatus = self.vm.runtimeConnected

@@ -22,7 +22,7 @@ def read_readme():
 
 setup(
     name="graphex-esxi-utils",
-    version="1.9.4",
+    version="1.10.0",
     author="The MITRE Corporation",
     description="A plugin for adding python esxi utils nodes to graphex.",
     long_description=read_readme(),
@@ -51,6 +51,6 @@ setup(
     packages=find_namespace_packages(include=["graphex_esxi_utils*"]),
     package_data=get_package_data(),
     python_requires=">=3.10",
-    install_requires=["mitre-graphex>=1.16.0", "esxi-utils>=3.22.1", "ping3==4.0.4", "pexpect==4.8.0"],
+    install_requires=["mitre-graphex>=1.16.0", "esxi-utils>=3.23.0", "ping3==4.0.4", "pexpect==4.8.0"],
     include_package_data=True
 )
