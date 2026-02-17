@@ -622,3 +622,21 @@ class EsxiDatastoreNames(Node):
 
     def run(self):
         self.the_names = self.esxi_client.datastores.names
+
+class EsxiDatastoreGetMostRecentFile(Node):
+    name: str = "ESXi Get Most Recently Modified DatastoreFile"
+    description: str = "This node expects you to provide a 'DatastoreFile' object that currently points to a directory (folder) in the datastore (also see the node called 'ESXi Datastore Get DatastoreFile from File Path'). It retrieves the file 'most recently modified' (mtime attribute) from that folder in the datastore. Because ESXi sometimes adds files to its datastores that are not relevant to files that you care about, an option to provide a regex on the names/extensions of the files you want to match on is provided (and recommended for use)."
+    categories: typing.List[str] = ["ESXi", "Datastore", "DatastoreFile"]
+    color: str = esxi_constants.COLOR_DATASTORE
+
+    datastoreFile = InputSocket(datatype=datatypes.DatastoreFile, name="Datastore Directory", description="The 'DatastoreFile' object pointing to a directory on the datastore (Please note there is not a 'DatastoreDirectory' object and that 'DatastoreFile' represents both).")
+
+    name_regex = OptionalInputSocket(datatype=String, name="Regex", description="An optional regex to provide to filter on the filenames matched. It is highly recommended you use this to at least filter on the file extension you want to match on (e.g.: .iso)")
+    recursive = InputSocket(datatype=Boolean, name="Recursive?", description="When this is set to true: will recursively search the sub-directories for the most recent file in addition to the primary directory path provided.", input_field=False)
+
+
+    output = OutputSocket(datatype=datatypes.DatastoreFile, name="DatastoreFile", description="A new 'DatastoreFile' object representing the file in the directory with the latest 'mtime' attribute on the datastore for that folder.")
+
+    def run(self):
+        name_regex = self.name_regex if self.name_regex else None
+        self.output = self.datastoreFile.latest_file(self.recursive, name_regex)
