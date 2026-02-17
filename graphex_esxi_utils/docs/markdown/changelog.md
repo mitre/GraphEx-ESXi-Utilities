@@ -2,9 +2,13 @@
 
 This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.
 
+## 1.11.0
+
+- Adds a new node: 'ESXi Get Most Recently Modified DatastoreFile' to get the file most recently modified in an ESXi Datastore for a given directory/folder
+
 ## 1.10.0
 
-- Adds new node: 'ESXi Virtual Machine Get Boot Time' to get the time a VM booted at.
+- Adds a new node: 'ESXi Virtual Machine Get Boot Time' to get the time a VM booted at
 
 ## 1.9.4
 
