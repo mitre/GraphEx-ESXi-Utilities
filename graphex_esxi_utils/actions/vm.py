@@ -327,6 +327,25 @@ class GetAllVirtualVideoCard(Node):
         self.output_devices = self.vm.video_cards.items
         self.debug(f"Virtual Video Cards: {str(self.output_devices)[1:-1]}")
 
+class GetAllVirtualSerialPorts(Node):
+    name: str = "Get All Virtual Serial Ports from VM"
+    description: str = "Gets a list of all the Virtual Serial Ports connected to the provided VM."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Hardware", "Virtual Devices"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to use.")
+    output_devices = ListOutputSocket(
+        datatype=datatypes.VirtualDevice, name="Virtual Serial Ports", description="A list of all Virtual Serial Port objects connected to the VM."
+    )
+
+    def log_prefix(self):
+        return f"[{self.name} - {self.vm.name}] "
+
+    def run(self):
+        self.debug(f"Getting all Virtual Serial Ports...")
+        self.output_devices = self.vm.serial_ports.items
+        self.debug(f"Virtual Serial Ports: {str(self.output_devices)[1:-1]}")
+
 
 class EsxiVirtualMachineGetDatastoreFilePath(Node):
     name: str = "ESXi VM Get Filepath (as DatastoreFile)"
