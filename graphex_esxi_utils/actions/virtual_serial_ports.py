@@ -1,4 +1,4 @@
-from graphex import Boolean, String, Number, Node, InputSocket, OutputSocket, ListOutputSocket, OptionalInputSocket, EnumInputSocket
+from graphex import Boolean, String, Node, InputSocket, OutputSocket, OptionalInputSocket, EnumInputSocket
 from graphex_esxi_utils import esxi_constants, datatypes, exceptions
 from graphex import exceptions as graphex_exceptions
 import esxi_utils
