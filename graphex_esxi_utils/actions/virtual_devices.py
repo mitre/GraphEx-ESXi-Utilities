@@ -480,7 +480,7 @@ class EsxiVirtualDeviceAddNic(Node):
     def run(self):
         self.log(f'Adding NIC "{self.network}"')
         valid_adapter_types = ["vmxnet", "vmxnet2", "vmxnet3", "e1000", "e1000e", "pcnet32", "sriov"]
-        selected_adapter = self.adapter_type.lower()
+        selected_adapter = self.adapter_type.lower().strip()
         if selected_adapter not in valid_adapter_types:
             raise graphex_exceptions.InvalidParameterError(self.name, "Adapter Type", selected_adapter, valid_adapter_types)
         self.output = self.vm.nics.add(network=self.network, adapter_type=selected_adapter, pci_slot=int(self.pci_slot) if self.pci_slot else None)
