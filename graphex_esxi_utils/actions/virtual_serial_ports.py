@@ -193,7 +193,7 @@ class EsxiVirtualDeviceSerialPortGetUriProxy(Node):
             raise exceptions.WrongSerialPortBackingError(self.name, 'uri', self.vd.backing_type)
         self.output = self.vd.uri_proxy_service if self.vd.uri_proxy_service else ""
 
-class EsxiVirtualDeviceSerialPortGetUriProxy(Node):
+class EsxiVirtualDeviceSerialPortGetUriProxyDirection(Node):
     name: str = "ESXi Serial Port Get Proxy URI Direction"
     description: str = "Gets the URI proxy direction string for this Serial Port Virtual Device Object. This node assumes your serial port is the network 'uri' backing type and was created using the 'ESXi VirtualDevice Add Serial Port (Network Backing)' node. If your serial port has a different backing type, then this node will raise a 'WrongSerialPortBackingError' exception when executed."
     categories: typing.List[str] = ["ESXi", "Virtual Machine", "Hardware", "Virtual Devices", "Serial Port"]
