@@ -328,3 +328,35 @@ class CiscoShowLogging(Node):
                 error = e
         if error:
             raise error
+
+class CiscoSSHConnectionGetIP(Node):
+    name: str = "Cisco SSH: Get IP From Connection"
+    description: str = "Gets the IP of the currently opened Cisco connection"
+    categories: typing.List[str] = ["Remote Connections", "SSH", "Cisco"]
+    color: str = esxi_constants.COLOR_CISCO_SSH_CONNECTION
+
+    sshobj = InputSocket(
+        datatype=datatypes.CiscoSSHConnection,
+        name="SSH Connection",
+        description="A previously opened SSH connection object to execute over. This must be an SSH connection to a Cisco host.",
+    )
+    current_ip = OutputSocket(datatype=String, name="IP Address", description="The IP address of the provided connection object.")
+
+    def run(self):
+        self.current_ip = self.sshobj._ip
+
+class CiscoSSHConnectionGetUsername(Node):
+    name: str = "Cisco: Get Username From Connection"
+    description: str = "Gets the Username of the currently connected user over the connection."
+    categories: typing.List[str] = ["Remote Connections", "SSH", "Cisco"]
+    color: str = esxi_constants.COLOR_CISCO_SSH_CONNECTION
+
+    sshobj = InputSocket(
+        datatype=datatypes.CiscoSSHConnection,
+        name="SSH Connection",
+        description="A previously opened SSH connection object to execute over. This must be an SSH connection to a Cisco host.",
+    )
+    current_username = OutputSocket(datatype=String, name="Username", description="The username connected to the provided connection object.")
+
+    def run(self):
+        self.current_username = self.sshobj._username

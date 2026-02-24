@@ -155,3 +155,27 @@ class SshExec(Node):
 
         if error:
             raise error
+
+class SSHConnectionGetIP(Node):
+    name: str = "SSH: Get IP From Connection"
+    description: str = "Gets the IP of the currently opened connection"
+    categories: typing.List[str] = ["Remote Connections", "SSH"]
+    color: str = esxi_constants.COLOR_SSH_CONNECTION
+
+    sshobj = InputSocket(datatype=datatypes.SSHConnection, name="SSH Connection", description="A previously opened SSH connection object to use.")
+    current_ip = OutputSocket(datatype=String, name="IP Address", description="The IP address of the provided connection object.")
+
+    def run(self):
+        self.current_ip = self.sshobj._ip
+
+class SSHConnectionGetUsername(Node):
+    name: str = "SSH: Get Username From Connection"
+    description: str = "Gets the Username of the currently connected user over the connection."
+    categories: typing.List[str] = ["Remote Connections", "SSH"]
+    color: str = esxi_constants.COLOR_SSH_CONNECTION
+
+    sshobj = InputSocket(datatype=datatypes.SSHConnection, name="SSH Connection", description="A previously opened SSH connection object to use.")
+    current_username = OutputSocket(datatype=String, name="Username", description="The username connected to the provided connection object.")
+
+    def run(self):
+        self.current_username = self.sshobj._username
