@@ -827,3 +827,45 @@ class WinRMGetADGroupInfo(Node):
         self.group_category = self.data["group_category"]
         self.group_scope = self.data["group_scope"]
         self.members = [member["name"] for member in self.data["members"]]
+
+class WinRMConnectionGetIP(Node):
+    name: str = "WinRM: Get IP From Connection"
+    description: str = "Gets the IP of the currently opened connection"
+    categories: typing.List[str] = ["Remote Connections", "WinRM"]
+    color: str = esxi_constants.COLOR_WINRM_CONNECTION
+
+    winrmobj = InputSocket(
+        datatype=datatypes.WinRMConnection, name="WinRM Connection", description="A previously opened WinRM connection object to execute over."
+    )
+    current_ip = OutputSocket(datatype=String, name="IP Address", description="The IP address of the provided connection object.")
+
+    def run(self):
+        self.current_ip = self.winrmobj._ip
+
+class WinRMConnectionGetUsername(Node):
+    name: str = "WinRM: Get Username From Connection"
+    description: str = "Gets the Username of the currently connected user over the connection."
+    categories: typing.List[str] = ["Remote Connections", "WinRM"]
+    color: str = esxi_constants.COLOR_WINRM_CONNECTION
+
+    winrmobj = InputSocket(
+        datatype=datatypes.WinRMConnection, name="WinRM Connection", description="A previously opened WinRM connection object to execute over."
+    )
+    current_username = OutputSocket(datatype=String, name="Username", description="The username connected to the provided connection object.")
+
+    def run(self):
+        self.current_username = self.winrmobj._username
+
+class WinRMConnectionGetTransport(Node):
+    name: str = "WinRM: Get Transport From Connection"
+    description: str = "Gets the transport of the current connection object."
+    categories: typing.List[str] = ["Remote Connections", "WinRM"]
+    color: str = esxi_constants.COLOR_WINRM_CONNECTION
+
+    winrmobj = InputSocket(
+        datatype=datatypes.WinRMConnection, name="WinRM Connection", description="A previously opened WinRM connection object to execute over."
+    )
+    transport = OutputSocket(datatype=String, name="Transport", description="The transport of the current connection object.")
+
+    def run(self):
+        self.transport = self.winrmobj._transport

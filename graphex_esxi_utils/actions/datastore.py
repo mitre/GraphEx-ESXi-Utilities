@@ -2,6 +2,7 @@ from graphex import Boolean, String, Number, Node, InputSocket, OptionalInputSoc
 from graphex_esxi_utils import esxi_constants, datatypes
 from graphex import exceptions as graphex_exceptions
 import esxi_utils
+import time
 import typing
 import re
 
@@ -640,3 +641,80 @@ class EsxiDatastoreGetMostRecentFile(Node):
     def run(self):
         name_regex = self.name_regex if self.name_regex else None
         self.output = self.datastoreFile.latest_file(self.recursive, name_regex)
+
+class EsxiDatastoreFileFollow(Node):
+    name: str = "ESXi DatastoreFile Follow Log File"
+    description: str = "This node will continue to watch/tail/follow the provided DatastoreFile object until a criteria is met for the node to consider the watch complete. By default, this node will exit after a certain period of time elapses. You can also configure the node to stop following when a provided VM has its boot time refreshed. You can configure the fetch interval for reading new information from the log file. Please note that this node will store the entire contents of the log file into memory in order to determine which changes warrant output to the screen. Do not use this node for large log files."
+    categories: typing.List[str] = ["ESXi", "Datastore", "DatastoreFile"]
+    color: str = esxi_constants.COLOR_DATASTORE_FILE
+
+    datastoreFile = InputSocket(datatype=datatypes.DatastoreFile, name="DatastoreFile", description="The DatastoreFile to watch/tail/follow.")
+    fetch_interval = InputSocket(datatype=Number, name="Fetch Interval in Seconds", description="How long to wait in seconds between each retrieval of the contents of the file in the datastore. This should be set on the higher side to avoid overloading ESXi with requests.", input_field=30)
+    timeout_duration_minutes = InputSocket(datatype=Number, name="Timeout in Minutes", description="How long to wait in minutes before moving on from this node. By default, nothing happens when the timeout occurs (the graph simply continues on). You can enforce an error using the 'Error on Timeout' input socket.", input_field=30)
+    error_on_timeout = InputSocket(datatype=Boolean, name="Error on Timeout", description="Whether this node should raise an exception/error when the timeout occurs or not.", input_field=False)
+    vm_to_monitor = OptionalInputSocket(datatype=datatypes.VirtualMachine, name="VM to Monitor Boot Time Of", description="This is an optional input. When provided: will monitor the boot time of the VM to determine whether the logging should stop and the graph should move on. The initial boot time to compare will be taken the moment this node starts executing in the graph.")
+    ignore_errors = InputSocket(datatype=Boolean, name="Ignore Fetching Errors", description="When this input socket is True: will ignore any exceptions that occur from ESXi while trying to fetch information (either from the log file or the VM metadata itself). The node will simply wait the full fetch interval before trying again.", input_field=True)
+
+    def log_prefix(self):
+        return f"[{self.name} - {self.datastoreFile.path}] "
+
+    def initial_log_prefix(self):
+        return f"[{self.name} - {self.datastoreFile.path}] "
+
+    def watching_log_prefix(self):
+        return ""
+
+    def run(self):
+        if self.vm_to_monitor and not self.vm_to_monitor.powered_on:
+            raise RuntimeError("The VM to monitor must be powered on in order to collect the initial boot time of the machine. If you didn't intend to monitor a VM, please remove the reference to the VM in the input socket: 'VM to Monitor Boot Time Of'.")
+
+        if self.vm_to_monitor:
+            initial_boot_time = self.vm_to_monitor.bootTime
+            self.log(f"Using initial boot time of : '{initial_boot_time}'")
+
+        timeout_in_seconds = self.timeout_duration_minutes * 60.0
+        end_time = time.monotonic() + timeout_in_seconds
+        file_contents_so_far: str = ""
+        current_contents: str = ""
+
+        self.log("Starting watch of datastore file contents...:")
+        self.log_prefix = self.watching_log_prefix
+        
+        while time.monotonic() < end_time:
+            try:
+                # retrieve the entire contents from the datastore file
+                current_contents = self.datastoreFile.read() or ""
+                # perform a 'tail' using string slicing
+                new_text = current_contents[len(file_contents_so_far):]
+                # log if there is new data
+                if new_text:
+                    self.log(new_text, skip_printing_level=True)
+                # update our variable to track the latest read operation
+                file_contents_so_far = current_contents
+
+                # determine if its time for the watcher to stop when monitoring for a VM to reboot
+                if self.vm_to_monitor and initial_boot_time:
+                    new_boot_time = self.vm_to_monitor.bootTime
+                    if initial_boot_time != new_boot_time:
+                        self.log_prefix = self.initial_log_prefix
+                        self.log(f"Detected boot time change in VM: '{new_boot_time}'!")
+                        # the node returns now as its done executing
+                        return
+            except Exception as e:
+                if self.ignore_errors:
+                    self.debug(str(e))
+                else:
+                    raise e
+
+            # compute how long to wait before the next fetch
+            remaining = end_time - time.monotonic()
+            if remaining <= 0:
+                # The node breaks to evaluate whether the timeout error should occur or not
+                break
+            # wait until the next fetch
+            time.sleep(min(self.fetch_interval, remaining))
+        # end while loop
+        self.log_prefix = self.initial_log_prefix
+        if self.error_on_timeout:
+            raise RuntimeError("Node 'ESXi DatastoreFile Follow Log File' timed out. This typically occurs when the node is configured to wait for the 'boot time' of a provided VM to change after reboot.")
+    # end run() fn

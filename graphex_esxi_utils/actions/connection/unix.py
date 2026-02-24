@@ -819,3 +819,27 @@ class EsxiUnixSshCurl(Node):
             s = f"Failed:\n" + misc_utils.get_response_debug_string(command_response)
             self.logger.add_azure_build_tag('unix-command-failed')
             raise exceptions.SSHExecutionError(s)
+
+class UnixSSHConnectionGetIP(Node):
+    name: str = "Unix SSH: Get IP From Connection"
+    description: str = "Gets the IP of the currently opened Unix connection"
+    categories: typing.List[str] = ["Remote Connections", "SSH", "Unix"]
+    color: str = esxi_constants.COLOR_UNIX_SSH_CONNECTION
+
+    sshobj = InputSocket(datatype=datatypes.UnixSSHConnection, name="SSH Connection", description="A previously opened SSH connection object to execute over. This must be the 'UnixSSHConnection' flavor of object.")
+    current_ip = OutputSocket(datatype=String, name="IP Address", description="The IP address of the provided connection object.")
+
+    def run(self):
+        self.current_ip = self.sshobj._ip
+
+class UnixSSHConnectionGetUsername(Node):
+    name: str = "Unix SSH: Get Username From Connection"
+    description: str = "Gets the Username of the currently connected user over the connection."
+    categories: typing.List[str] = ["Remote Connections", "SSH", "Unix"]
+    color: str = esxi_constants.COLOR_UNIX_SSH_CONNECTION
+
+    sshobj = InputSocket(datatype=datatypes.UnixSSHConnection, name="SSH Connection", description="A previously opened SSH connection object to execute over. This must be the 'UnixSSHConnection' flavor of object.")
+    current_username = OutputSocket(datatype=String, name="Username", description="The username connected to the provided connection object.")
+
+    def run(self):
+        self.current_username = self.sshobj._username

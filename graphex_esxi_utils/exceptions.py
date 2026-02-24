@@ -181,3 +181,16 @@ class GuestToolsConnectionLost(GraphexEsxiUtilsException):
 
     def __init__(self, err_msg: str):
         super().__init__(f"Connection Lost to Guest Tools on the VM! Did your command reboot the machine? Verbose error message: {str(err_msg)}")
+
+class WrongSerialPortBackingError(GraphexEsxiUtilsException):
+    """
+    Raised when a serial port was requested to perform some operation (e.g. get, set, etc.) but the backing type was mismatched (e.g. file, uri, etc.).
+    """
+
+    def __init__(
+        self, node_name: str, expected_backing: str, wrong_backing: str
+    ):
+        msg: str = (
+            f"Node: '{node_name}' expected to perform an operation on serial port backing of type: '{expected_backing}' ... but was provided a serial port with backing type: '{wrong_backing}'"
+        )
+        super().__init__(msg)
