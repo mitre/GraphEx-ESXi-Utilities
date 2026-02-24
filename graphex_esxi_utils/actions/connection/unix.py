@@ -833,7 +833,7 @@ class UnixSSHConnectionGetIP(Node):
         self.current_ip = self.sshobj._ip
 
 class UnixSSHConnectionGetUsername(Node):
-    name: str = "SSH: Get Username From Connection"
+    name: str = "Unix SSH: Get Username From Connection"
     description: str = "Gets the Username of the currently connected user over the connection."
     categories: typing.List[str] = ["Remote Connections", "SSH", "Unix"]
     color: str = esxi_constants.COLOR_UNIX_SSH_CONNECTION
