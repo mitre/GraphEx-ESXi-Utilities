@@ -688,7 +688,7 @@ class EsxiDatastoreFileFollow(Node):
                 new_text = current_contents[len(file_contents_so_far):]
                 # log if there is new data
                 if new_text:
-                    self.log(new_text)
+                    self.log(new_text, skip_printing_level=True)
                 # update our variable to track the latest read operation
                 file_contents_so_far = current_contents
 
