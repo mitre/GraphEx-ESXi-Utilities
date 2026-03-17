@@ -6,7 +6,21 @@
 <body>
 
 <h1 id="changelog">Changelog</h1>
-<p>This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.</p><h2 id="1110">1.11.0</h2>
+<p>This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.</p><h2 id="200">2.0.0</h2>
+<ul>
+<li>Adds new nodes to support new Functionality from Python-ESXi-Utilties 4.0.0<ul>
+<li>VirtualMachine objects are now visible at the inventory level instead of the child host level in vCenter<ul>
+<li>This also means you can deploy VMs to other hosts even though you connect to a specific child</li>
+</ul>
+</li>
+<li>Support for converting VMs into templates and deploying/cloning those templates into new VMs</li>
+<li>New nodes for collecting information about VM location under vCenter</li>
+</ul>
+</li>
+<li>Fix several regex warnings in library import for Python version 3.12+</li>
+<li>Silences the deprecation warning about the pinning of setuptools pkg_resources API</li>
+</ul>
+<h2 id="1110">1.11.0</h2>
 <ul>
 <li>Adds a new node: &#39;ESXi Get Most Recently Modified DatastoreFile&#39; to get the file most recently modified in an ESXi Datastore for a given directory/folder</li>
 </ul>

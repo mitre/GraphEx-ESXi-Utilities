@@ -13,17 +13,27 @@ import json
 ########################
 ## ESXi Client Object ##
 ########################
-def construct_esxi_client(runtime: Runtime, logger_info: typing.Callable, host_ip: str, username: str, password: str, child_ip: typing.Optional[str], child_user: typing.Optional[str], child_pass: typing.Optional[str]) -> esxi_utils.ESXiClient:
+def construct_esxi_client(
+        runtime: Runtime,
+        logger_info: typing.Callable,
+        host_ip: str,
+        username: str,
+        password: str,
+        child_ip: typing.Optional[str],
+        child_user: typing.Optional[str],
+        child_pass: typing.Optional[str],
+        use_legacy_vm_list: bool = False
+    ) -> esxi_utils.ESXiClient:
     try:
         #host_ip = str(ipaddress.IPv4Address(host_ip))
         if not child_ip or not child_user or not child_pass:
             logger_info(f"Connecting to ESXi server at: {host_ip}")
-            client = esxi_utils.ESXiClient(host_ip, username, password)
+            client = esxi_utils.ESXiClient(host_ip, username, password, use_legacy_vm_list=use_legacy_vm_list)
         else:
             #child_ip = str(ipaddress.IPv4Address(child_ip))
             logger_info(f'Connecting to vCenter master/parent at: "{host_ip}" and child server at "{child_ip}"')
             client = esxi_utils.ESXiClient(
-                host_ip, username, password, child_hostname=child_ip, child_username=child_user, child_password=child_pass
+                host_ip, username, password, child_hostname=child_ip, child_username=child_user, child_password=child_pass, use_legacy_vm_list=use_legacy_vm_list
             )
         logger_info("Connection to ESXi server established.")
 

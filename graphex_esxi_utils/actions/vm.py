@@ -1204,6 +1204,280 @@ class EsxiVmNames(Node):
         self.the_names = self.esxi_client.vms.names
 
 
+class EsxiVmCreateOnHost(Node):
+    name: str = "ESXi Create VM on Host"
+    description: str = "Create a pre-configured VM on the specified ESXi hostname (or IP). This node is not supported if your ESXi client is in 'legacy' mode."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine"]
+    color: str = esxi_constants.COLOR_CLIENT
+
+    esxi_client = InputSocket(datatype=datatypes.ESXiClient, name="ESXi Client", description="The ESXi client to use.")
+    vm_name = InputSocket(datatype=String, name="Name", description="The name of the new VM")
+    datastore = InputSocket(datatype=datatypes.Datastore, name="Datastore", description="The datastore where the VM should be created.")
+    vcpus = InputSocket(
+        datatype=Number, name="vCPUs", description="The number of vCPUs to assign to this VM. Must be greater than or equal to 1.", input_field=1
+    )
+    memory = InputSocket(
+        datatype=String,
+        name="Memory",
+        description="A string representing the amount of memory to assign to this VM. The string is expected to take the form <number><unit>, where <unit> is one of KB, MB, or GB (e.g. 8GB).",
+        input_field="1GB",
+    )
+    guestid = InputSocket(
+        datatype=String,
+        name="Guest ID",
+        description="Short guest operating system identifier (See: https://developer.vmware.com/apis/358/vsphere/doc/vim.vm.GuestOsDescriptor.GuestOsIdentifier.html)",
+        input_field="otherGuest",
+    )
+    destination_host = OptionalInputSocket(datatype=String, name="Destination ESXi Host", description="The host in ESXi to create this VM on. The VM will use the resource pool associated with that host. This is primarily for vCenter systems. If this value is not set: the VM will be created on the same ESXi host as the connection that runs this node.")
+    version = OptionalInputSocket(
+        datatype=String,
+        name="Version",
+        description="The version string for this virtual machine (e.g. ``vmx-10``). The default version for the ESXi host will be used otherwise.",
+    )
+    folder_name = OptionalInputSocket(
+        datatype=String,
+        name="Folder Name",
+        description="The folder to contain the new VM. The default is the 'root' VMs folder. Will create a new folder if one is not found with a matching name. Will throw an esxi_utils 'MultipleFoldersFoundError' exception if more than one folder is found with the given name.",
+    )
+
+    # video card options
+    video_auto_connect = OptionalInputSocket(
+        datatype=Boolean, name="Auto Detect Video Settings", description="When 'True' sets the video card to 'Auto Detect' video settings. When 'False' (or unset) sets the video card to 'Specify Custom Settings'."
+    )
+
+    # BIOS or UEFI boot firmware
+    use_uefi = OptionalInputSocket(
+        datatype=Boolean, name="Use UEFI Firmware", description="When 'True' sets boot firmware to UEFI. When 'False' (or unset) sets the boot firmware to legacy BIOS mode."
+    )
+
+    output = OutputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="A `VirtualMachine` object for the new VM.")
+
+    def log_prefix(self):
+        return f"[{self.name} - Host {self.esxi_client.hostname}] "
+
+    def run(self):
+        version = self.version if self.version else None
+        folder_name = self.folder_name if self.folder_name else None
+        video_card_auto_detect = self.video_auto_connect if self.video_auto_connect else None
+        uefi_boot = self.use_uefi if self.use_uefi else None
+        target_host = self.destination_host if self.destination_host else None
+        self.log(
+            f'Creating Virtual Machine "{self.vm_name}" on DataStore "{self.datastore.name}" using ESXi hostname "{target_host}" (vCPUs={self.vcpus}, Memory={self.memory}, GuestID={self.guestid}, Version={self.version})...'
+        )
+        self.output = self.esxi_client.vms.create(
+            name=self.vm_name,
+            datastore=self.datastore,
+            vcpus=int(self.vcpus),
+            memory=self.memory,
+            guestid=self.guestid,
+            version=version,
+            folder_name=folder_name,
+            video_card_auto_detect=video_card_auto_detect,
+            uefi_boot=uefi_boot,
+            host=target_host
+        )
+        self.debug(f'Created Virtual Machine "{self.vm_name}" on ESXi host "{target_host}".')
+
+
+class EsxiVmUploadOvfFileOnHost(Node):
+    name: str = "ESXi Upload VM from OVF File on Host"
+    description: str = "Uploads a local OVF or OVA file to the provided datastore as a new VM. This node allows you to specify the target ESXi (child) host to create the VM on."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine"]
+    color: str = esxi_constants.COLOR_CLIENT
+
+    esxi_client = InputSocket(datatype=datatypes.ESXiClient, name="ESXi Client", description="The ESXi client to use.")
+
+    ovf_file = InputSocket(datatype=datatypes.OvfFile, name="OVF File", description="An `OvfFile` object.")
+    datastore = InputSocket(datatype=datatypes.Datastore, name="Datastore", description="The datastore where the VM should be created.")
+    destination_host = OptionalInputSocket(datatype=String, name="Destination ESXi Host", description="The host in ESXi to create this VM on. The VM will use the resource pool associated with that host. This is primarily for vCenter systems. If this value is not set: the VM will be created on the same ESXi host as the connection that runs this node.")
+    upload_name = OptionalInputSocket(
+        datatype=String, name="Name", description="The name of the new VM. If not provided, the name is based on the name defined in the OVF/OVA."
+    )
+    folder_name = OptionalInputSocket(
+        datatype=String,
+        name="Folder Name",
+        description="The folder to contain the new VM. The default is the 'root' VMs folder. Will create a new folder if one is not found with a matching name. Will throw an esxi_utils 'MultipleFoldersFoundError' exception if more than one folder is found with the given name.",
+    )
+    network_map = OptionalInputSocket(
+        datatype=DataContainer,
+        name="Network Mappings",
+        description="A Data Container of network mappings. This should be 'key: value' pairs mapping the old network name (in the OVF) to the new network name (on the server).",
+    )
+
+    output = OutputSocket(datatypes.VirtualMachine, name="VirtualMachine", description="A `VirtualMachine` object for the new VM.")
+
+    def log_prefix(self):
+        return f"[{self.name} - Host {self.esxi_client.hostname}] "
+
+    def run(self):
+        upload_name = self.upload_name if self.upload_name else None
+        folder_name = self.folder_name if self.folder_name else None
+        network_map = self.network_map if self.network_map else None
+        target_host = self.destination_host if self.destination_host else None
+        folder_string = f" (Folder: {folder_name})" if folder_name else ""
+
+        assert isinstance(network_map, dict) or network_map is None, "Network Mappings must be a dictionary."
+
+        self.log(f"Uploading {self.ovf_file.path} as Virtual Machine {upload_name} to Datastore {self.datastore.name} {folder_string} on ESXi Hostname {target_host}...")
+        if network_map:
+            self.debug(f"Mapping networks for {self.ovf_file.path} using network map: {network_map}")
+
+        try:
+            self.output = self.esxi_client.vms.upload(
+                file=self.ovf_file, datastore=self.datastore, name=upload_name, folder_name=folder_name, network_mappings=network_map, host=target_host
+            )
+        except Exception as e:
+            self.logger.add_azure_build_tag('ovf-or-ova-failed-to-upload')
+            raise e
+
+        disk_strings = [str(math.ceil(disk.size / (1024 * 1024))) + "GB" for disk in self.output.disks]
+        network_strings = [nic.network for nic in self.output.nics]
+        self.debug(
+            f"Created Virtual Machine {self.output.name} from file {self.ovf_file.path} on ESXi host {target_host} (vCPUs={self.output.vcpus}, Memory={self.output.memory}MB, GuestID={self.output.guestid}, Disks={disk_strings}, Networks={network_strings})."
+        )
+
+
+class EsxiVmUploadPathOnHost(Node):
+    name: str = "ESXi Upload VM from Path on Host"
+    description: str = "Uploads a local OVF or OVA file to the provided datastore as a new VM. This node allows you to specify the target ESXi (child) host to create the VM on."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine"]
+    color: str = esxi_constants.COLOR_CLIENT
+
+    esxi_client = InputSocket(datatype=datatypes.ESXiClient, name="ESXi Client", description="The ESXi client to use.")
+
+    file_path = InputSocket(datatype=String, name="File Path", description="A path to a .ovf/.ova file (string)")
+    datastore = InputSocket(datatype=datatypes.Datastore, name="Datastore", description="The datastore where the VM should be created.")
+    destination_host = OptionalInputSocket(datatype=String, name="Destination ESXi Host", description="The host in ESXi to create this VM on. The VM will use the resource pool associated with that host. This is primarily for vCenter systems. If this value is not set: the VM will be created on the same ESXi host as the connection that runs this node.")
+    upload_name = OptionalInputSocket(
+        datatype=String, name="Name", description="The name of the new VM. If not provided, the name is based on the name defined in the OVF/OVA."
+    )
+    folder_name = OptionalInputSocket(
+        datatype=String,
+        name="Folder Name",
+        description="The folder to contain the new VM. The default is the 'root' VMs folder. Will create a new folder if one is not found with a matching name. Will throw an esxi_utils 'MultipleFoldersFoundError' exception if more than one folder is found with the given name.",
+    )
+    network_map = OptionalInputSocket(
+        datatype=DataContainer,
+        name="Network Mappings",
+        description="A Data Container of network mappings. This should be 'key: value' pairs mapping the old network name (in the OVF) to the new network name (on the server).",
+    )
+
+    output = OutputSocket(datatypes.VirtualMachine, name="VirtualMachine", description="A `VirtualMachine` object for the new VM.")
+
+    def log_prefix(self):
+        return f"[{self.name} - Host {self.esxi_client.hostname}] "
+
+    def run(self):
+        ovf = esxi_utils.file.OvfFile(path=self.file_path)
+        upload_name = self.upload_name if self.upload_name else ovf.vmname
+        folder_name = self.folder_name if self.folder_name else None
+        network_map = self.network_map if self.network_map else None
+        target_host = self.destination_host if self.destination_host else None
+        folder_string = f" (Folder: {folder_name})" if folder_name else ""
+
+        assert isinstance(network_map, dict) or network_map is None, "Network Mappings must be a dictionary."
+
+        self.log(f"Uploading {self.file_path} as Virtual Machine {upload_name} to Datastore {self.datastore.name} {folder_string} on ESXi Hostname {target_host}...")
+        if network_map:
+            self.debug(f"Mapping networks for {self.file_path} using network map: {network_map}")
+
+        try:
+            self.output = self.esxi_client.vms.upload(
+                file=self.file_path, datastore=self.datastore, name=upload_name, folder_name=folder_name, network_mappings=network_map, host=target_host
+            )
+        except Exception as e:
+            self.logger.add_azure_build_tag('ovf-or-ova-failed-to-upload')
+            raise e
+
+        disk_strings = [str(math.ceil(disk.size / (1024 * 1024))) + "GB" for disk in self.output.disks]
+        network_strings = [nic.network for nic in self.output.nics]
+        self.debug(
+            f"Created Virtual Machine {self.output.name} from file {self.file_path} (vCPUs={self.output.vcpus}, Memory={self.output.memory}MB, GuestID={self.output.guestid}, Disks={disk_strings}, Networks={network_strings})."
+        )
+
+
+class EsxiVmGetHostName(Node):
+    name: str = "ESXi VM Get ESXi Client Hostname"
+    description: str = "Outputs the (runtime) hostname (or IP addresses) of the (child) host that owns this VM (and the resource pool for it). This is not necessarily the same as the host connected to via the 'Connect to ESXi' node."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to use.")
+    output = OutputSocket(
+        datatype=String, name="ESXi (child) host", description="The ESXi server that owns this VM and its resource pool."
+    )
+
+    def run(self):
+        self.output = self.vm.esxi_host_name
+
+
+class EsxiVmIsTemplate(Node):
+    name: str = "ESXi VM Is Template"
+    description: str = "Outputs 'True' if this VM is actually a template in the vCenter inventory that is used to deploy/clone other VMs. Outputs 'False' if this is a 'normal' VM object."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Templates"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to use.")
+    output = OutputSocket(
+        datatype=Boolean, name="Is Template?", description="Outputs 'True' if this VM is actually a template in the vCenter inventory that is used to deploy/clone other VMs. Outputs 'False' if this is a 'normal' VM object."
+    )
+
+    def run(self):
+        self.output = self.vm.is_template
+
+
+class EsxiVmToTemplate(Node):
+    name: str = "ESXi VM Convert To Template (vCenter)"
+    description: str = "THIS CANNOT BE UNDONE! Converts a ESXi VM object into a template that can be then be cloned/redeployed in a reusable manner. This is similar to exporting a VM as an OVF file but has the extreme advantage of remaining in the vCenter inventory. Templates can be deployed in a manner of minutes (typically two minutes) vs well over a half hour to import (not counting export) a single normal sized VM. Templates are only supported on vCenter ESXi host arrangements. To deploy this template after creation, use the 'ESXi VM Deploy From Template' node. THIS CANNOT BE UNDONE!"
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Templates"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to convert to a template.")
+    output = OutputSocket(
+        datatype=datatypes.VirtualMachine, name="VM Template", description="A template of the VM that can be used to deploy other VMs. THIS OPERATION IS IRREVERSABLE and CANNOT BE UNDONE!"
+    )
+
+    def run(self):
+        self.output = self.vm.to_template()
+
+
+class EsxiVmDeployFromTemplate(Node):
+    name: str = "ESXi VM Deploy From Template"
+    description: str = "This node is used to create a new VM from one that is marked as a 'template' in vCenter. Templates are special 'VM objects' that can only be used for the creation of new VMs. You can create a template in GraphEx using the 'ESXi VM Convert To Template (vCenter)' node."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Templates"]
+    color: str = esxi_constants.COLOR_VM
+
+    # inputs
+    vm_template = InputSocket(datatype=datatypes.VirtualMachine, name="VM Template", description="A template of a Virtual Machine. Note that these have the same datatype (ESXi VM / VirtualMachine) as a 'normal' VM.")
+    new_name = InputSocket(datatype=String, name="New VM Name", description="The name to give to the new VM created from the template.")
+    datastore = InputSocket(datatype=datatypes.Datastore, name="Datastore", description="The datastore where the VM should be created.")
+    destination_host = OptionalInputSocket(datatype=String, name="Destination ESXi Host", description="The host in ESXi to create this VM on. The VM will use the resource pool associated with that host. This is primarily for vCenter systems. If this value is not set: the VM will be created on the same ESXi host as the connection that runs this node.")
+    folder_name = OptionalInputSocket(
+        datatype=String,
+        name="Folder Name",
+        description="The folder to contain the new VM. The default is the 'root' VMs folder. Will create a new folder if one is not found with a matching name. Will throw an esxi_utils 'MultipleFoldersFoundError' exception if more than one folder is found with the given name.",
+    )
+    power_on = InputSocket(datatype=Boolean, name="Power On After Creation?", description="When 'True': will power on the VM after creating it from the template.", input_field=False)
+
+    # outputs
+    new_vm = OutputSocket(datatype=datatypes.VirtualMachine, name="New VM", description="The VM created from the template.")
+
+    def run(self):
+        folder_name = self.folder_name if self.folder_name else None
+        target_host = self.destination_host if self.destination_host else None
+        self.log(
+            f'Creating Virtual Machine "{self.new_name}" on DataStore "{self.datastore.name}" using ESXi hostname "{target_host}" from a VM template called: "{self.vm_template.name}"...'
+        )
+        self.vm_template.deploy_from_template(
+            self.new_name,
+            self.datastore,
+            folder_name,
+            target_host,
+            power_on=self.power_on
+        )
+        self.debug(f'Created Virtual Machine "{self.new_name}" on ESXi host "{target_host}" from the template "{self.vm_template.name}".')
+
+
 class EsxiVmCreate(Node):
     name: str = "ESXi Create VM"
     description: str = "Create a pre-configured VM."

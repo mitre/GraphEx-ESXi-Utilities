@@ -28,6 +28,52 @@ class ConnectToEsxi(Node):
     def run(self):
         self.output = datatypes.ESXiClient.construct(self._runtime, self.log, self.host_ip, self.username, self.password, self.child_ip, self.child_user, self.child_pass)
 
+class ConnectToEsxiLegacy(Node):
+    name: str = "Connect to ESXi (Legacy)"
+    description: str = "This node is the same as 'Connect to ESXi' except for the way in which the client handles visibility of Virtual Machines. When using this node: any attempt to get a Virtual Machine will be scoped to only the virtual machines that reside on the specific 'Child's IP (vCenter)' that is provided to this connection client."
+    categories: typing.List[str] = ["ESXi", "Client"]
+    color: str = esxi_constants.COLOR_CLIENT
+
+    host_ip = InputSocket(datatype=String, name="Host/Master IP", description="The IP address or hostname of the ESXi server to login to.")
+    username = InputSocket(datatype=String, name="Username", description="The username to login to (root is recommended)")
+    password = InputSocket(datatype=String, name="Password", description="The password for the username.")
+    child_ip = OptionalInputSocket(datatype=String, name="Child's IP (vCenter)", description="The child system's IP address or hostname to login to.")
+    child_user = OptionalInputSocket(datatype=String, name="Child's Username (vCenter)", description="The child system's username to login to.")
+    child_pass = OptionalInputSocket(datatype=String, name="Child's Password (vCenter)", description="The password for the child system's username.")
+
+    output = VariableOutputSocket(datatype=datatypes.ESXiClient, name="ESXi Client (Legacy)", description="A client object instance for a connection to ESXi. For legacy: any attempt to get a Virtual Machine will be scoped to only the virtual machines that reside on the specific 'Child's IP (vCenter)' that is provided to this connection client.")
+
+    def log_prefix(self):
+        return f"[{self.name} - {self.child_user or self.username}@{self.child_ip or self.host_ip}] "
+
+    def run(self):
+        self.output = datatypes.ESXiClient.construct(self._runtime, self.log, self.host_ip, self.username, self.password, self.child_ip, self.child_user, self.child_pass, True)
+
+class EsxiClientHasLegacyVmDiscovery(Node):
+    name: str = "ESXi Client Has Legacy VM Discovery"
+    description: str = "This node will output 'True' if this client connection was created using the 'Connect to ESXi (Legacy)' node. Otherwise, this node will ouptut 'False'"
+    categories: typing.List[str] = ["ESXi", "Client"]
+    color: str = esxi_constants.COLOR_CLIENT
+
+    esxi_client = InputSocket(datatype=datatypes.ESXiClient, name="ESXi Client", description="The ESXi client to check for legacy VM listing usage.")
+
+    is_legacy = OutputSocket(datatype=Boolean, name="Is Legacy", description="True if this ESXi client connection was created by the node called 'Connect to ESXi (Legacy)'.")
+
+    def run(self):
+        self.is_legacy = self.esxi_client.use_legacy_vm_list
+
+class EsxiClientIsVCenter(Node):
+    name: str = "ESXi Client Has vCenter Connection"
+    description: str = "This node will output 'True' if this client connection has a vCenter controlling 'child' hosts. Otherwise, this node will ouptut 'False'"
+    categories: typing.List[str] = ["ESXi", "Client"]
+    color: str = esxi_constants.COLOR_CLIENT
+
+    esxi_client = InputSocket(datatype=datatypes.ESXiClient, name="ESXi Client", description="The ESXi client to check for vCenter integration.")
+
+    is_vcenter = OutputSocket(datatype=Boolean, name="Is vCenter", description="True if this ESXi client connection is a connection to a vCenter managed host cluster.")
+
+    def run(self):
+        self.is_vcenter = self.esxi_client.is_vcenter()
 
 class GetEsxiVm(Node):
     name: str = "Get ESXi VM"
