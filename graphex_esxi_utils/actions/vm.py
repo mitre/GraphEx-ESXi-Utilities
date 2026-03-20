@@ -1468,7 +1468,7 @@ class EsxiVmDeployFromTemplate(Node):
         self.log(
             f'Creating Virtual Machine "{self.new_name}" on DataStore "{self.datastore.name}" using ESXi hostname "{target_host}" from a VM template called: "{self.vm_template.name}"...'
         )
-        self.vm_template.deploy_from_template(
+        self.new_vm = self.vm_template.deploy_from_template(
             self.new_name,
             self.datastore,
             folder_name,
