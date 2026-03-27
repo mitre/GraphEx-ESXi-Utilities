@@ -1276,7 +1276,10 @@ class EsxiVmCreateOnHost(Node):
             uefi_boot=uefi_boot,
             host=target_host
         )
-        self.debug(f'Created Virtual Machine "{self.vm_name}" on ESXi host "{target_host}".')
+        if target_host:
+            self.debug(f'Created Virtual Machine "{self.vm_name}" on ESXi host "{target_host}".')
+        else:
+            self.debug(f'Created Virtual Machine "{self.vm_name}".')
 
 
 class EsxiVmUploadOvfFileOnHost(Node):
@@ -1332,9 +1335,14 @@ class EsxiVmUploadOvfFileOnHost(Node):
 
         disk_strings = [str(math.ceil(disk.size / (1024 * 1024))) + "GB" for disk in self.output.disks]
         network_strings = [nic.network for nic in self.output.nics]
-        self.debug(
-            f"Created Virtual Machine {self.output.name} from file {self.ovf_file.path} on ESXi host {target_host} (vCPUs={self.output.vcpus}, Memory={self.output.memory}MB, GuestID={self.output.guestid}, Disks={disk_strings}, Networks={network_strings})."
-        )
+        if target_host:
+            self.debug(
+                f"Created Virtual Machine {self.output.name} from file {self.ovf_file.path} on ESXi host {target_host} (vCPUs={self.output.vcpus}, Memory={self.output.memory}MB, GuestID={self.output.guestid}, Disks={disk_strings}, Networks={network_strings})."
+            )
+        else:
+            self.debug(
+                f"Created Virtual Machine {self.output.name} from file {self.ovf_file.path} (vCPUs={self.output.vcpus}, Memory={self.output.memory}MB, GuestID={self.output.guestid}, Disks={disk_strings}, Networks={network_strings})."
+            )
 
 
 class EsxiVmUploadPathOnHost(Node):
@@ -1377,7 +1385,10 @@ class EsxiVmUploadPathOnHost(Node):
 
         assert isinstance(network_map, dict) or network_map is None, "Network Mappings must be a dictionary."
 
-        self.log(f"Uploading {self.file_path} as Virtual Machine {upload_name} to Datastore {self.datastore.name} {folder_string} on ESXi Hostname {target_host}...")
+        if target_host:
+            self.log(f"Uploading {self.file_path} as Virtual Machine {upload_name} to Datastore {self.datastore.name} {folder_string} on ESXi Hostname {target_host}...")
+        else:
+            self.log(f"Uploading {self.file_path} as Virtual Machine {upload_name} to Datastore {self.datastore.name} {folder_string}...")
         if network_map:
             self.debug(f"Mapping networks for {self.file_path} using network map: {network_map}")
 
@@ -1475,7 +1486,10 @@ class EsxiVmDeployFromTemplate(Node):
             target_host,
             power_on=self.power_on
         )
-        self.debug(f'Created Virtual Machine "{self.new_name}" on ESXi host "{target_host}" from the template "{self.vm_template.name}".')
+        if target_host:
+            self.debug(f'Created Virtual Machine "{self.new_name}" on ESXi host "{target_host}" from the template "{self.vm_template.name}".')
+        else:
+            self.debug(f'Created Virtual Machine "{self.new_name}" from the template "{self.vm_template.name}".')
 
 
 class EsxiVmCreate(Node):
