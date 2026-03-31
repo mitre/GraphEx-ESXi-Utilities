@@ -11,6 +11,7 @@ This page was created to track changes to versions of GraphEx-ESXi-Utilities. Th
     - New nodes for collecting information about VM location under vCenter
 - Fix several regex warnings in library import for Python version 3.12+
 - Silences the deprecation warning about the pinning of setuptools pkg_resources API
+- Adds the node "ESXi Hard Stop Virtual Machine" to allow for forceful shutdowns of unresponsive VMs (or quicker deletion/cleanup)
 
 ## 1.11.0
 

@@ -87,6 +87,30 @@ class EsxiVirtualMachinePowerOff(Node):
             self.vm.power_off(True)
 
 
+class EsxiVirtualMachineHardStop(Node):
+    name: str = "ESXi Hard Stop Virtual Machine"
+    description: str = "Forcefully powers off the provided Virtual Machine by hard stopping it. This is extremely non-graceful and should be reserved for when you want to delete a VM or for unresponsive VMs."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Power"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to use.")
+    error_if_off = OptionalInputSocket(
+        datatype=Boolean,
+        name="Error if Already Off?",
+        description="When set to True: Will throw an exception (create an error) if the virtual machine is already powered off.",
+    )
+
+    def log_prefix(self):
+        return f"[{self.name} - {self.vm.name}] "
+
+    def run(self):
+        self.log(f"Hard stopping...")
+        if self.error_if_off is not None and self.error_if_off:
+            self.vm.power_off(hard_stop=True)
+        else:
+            self.vm.power_off(True, hard_stop=True)
+
+
 class EsxiVirtualMachineGetDatastore(Node):
     name: str = "ESXi Get Datastore for VM"
     description: str = "Gets the datastore that the provided Virtual Machine is stored in."
