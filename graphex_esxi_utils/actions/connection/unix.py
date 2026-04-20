@@ -722,7 +722,7 @@ class EsxiUnixSshCurl(Node):
     payload = OptionalInputSocket(
         datatype=String,
         name="(-d) Payload Data",
-        description="When sending data to the URL: this is the data to send. If sending JSON: this field should be a JSON string and the '(-H) Content-Type JSON?' checkbox should be set to True. This string will be wrapped in single quotes ('your_payload_data'). Make sure to use the escape character (\) in front of any single quotes you wish to use in your payload.",
+        description="When sending data to the URL: this is the data to send. If sending JSON: this field should be a JSON string and the '(-H) Content-Type JSON?' checkbox should be set to True. This string will be wrapped in single quotes ('your_payload_data'). Make sure to use the escape character (\\) in front of any single quotes you wish to use in your payload.",
     )
     output_arg = OptionalInputSocket(
         datatype=String,
