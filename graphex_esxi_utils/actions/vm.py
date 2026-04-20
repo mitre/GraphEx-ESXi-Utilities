@@ -1463,7 +1463,7 @@ class EsxiVmIsTemplate(Node):
 
 class EsxiVmToTemplate(Node):
     name: str = "ESXi VM Convert To Template (vCenter)"
-    description: str = "THIS CANNOT BE UNDONE! Converts a ESXi VM object into a template that can be then be cloned/redeployed in a reusable manner. This is similar to exporting a VM as an OVF file but has the extreme advantage of remaining in the vCenter inventory. Templates can be deployed in a manner of minutes (typically two minutes) vs well over a half hour to import (not counting export) a single normal sized VM. Templates are only supported on vCenter ESXi host arrangements. To deploy this template after creation, use the 'ESXi VM Deploy From Template' node. THIS CANNOT BE UNDONE!"
+    description: str = "THIS CANNOT BE UNDONE! Converts a ESXi VM object into a template that can be then be cloned/redeployed in a reusable manner. This is similar to exporting a VM as an OVF file but has the extreme advantage of remaining in the vCenter inventory. Templates can be deployed in a manner of minutes (typically two minutes) vs well over a half hour to import (not counting export) a single normal sized VM. Templates are only supported on vCenter ESXi host arrangements. To deploy this template after creation, use the 'ESXi VM Deploy From Template' node. THIS CANNOT BE UNDONE! Also see 'ESXi VM Clone Into Template (vCenter)' to copy a VM into a template instead of fully converting it."
     categories: typing.List[str] = ["ESXi", "Virtual Machine", "Templates"]
     color: str = esxi_constants.COLOR_VM
 
@@ -1501,7 +1501,7 @@ class EsxiVmDeployFromTemplate(Node):
         folder_name = self.folder_name if self.folder_name else None
         target_host = self.destination_host if self.destination_host else None
         self.log(
-            f'Creating Virtual Machine "{self.new_name}" on DataStore "{self.datastore.name}" using ESXi hostname "{target_host}" from a VM template called: "{self.vm_template.name}"...'
+            f'Creating Virtual Machine "{self.new_name}" on DataStore "{self.datastore.name}" from a VM template called: "{self.vm_template.name}"...'
         )
         self.new_vm = self.vm_template.deploy_from_template(
             self.new_name,
@@ -1514,6 +1514,44 @@ class EsxiVmDeployFromTemplate(Node):
             self.debug(f'Created Virtual Machine "{self.new_name}" on ESXi host "{target_host}" from the template "{self.vm_template.name}".')
         else:
             self.debug(f'Created Virtual Machine "{self.new_name}" from the template "{self.vm_template.name}".')
+
+
+class EsxiVmCloneIntoTemplate(Node):
+    name: str = "ESXi VM Clone Into Template (vCenter)"
+    description: str = "Clones a ESXi VM object into a template that can be then be cloned/redeployed in a reusable manner. This is similar to exporting a VM as an OVF file but has the extreme advantage of remaining in the vCenter inventory. Templates can be deployed in a manner of minutes (typically two minutes) vs well over a half hour to import (not counting export) a single normal sized VM. Templates are only supported on vCenter ESXi host arrangements. To deploy this template after creation, use the 'ESXi VM Deploy From Template' node. Also see 'ESXi VM Convert To Template (vCenter)' to permanently convert a VM into a template."
+    categories: typing.List[str] = ["ESXi", "Virtual Machine", "Templates"]
+    color: str = esxi_constants.COLOR_VM
+
+    vm = InputSocket(datatype=datatypes.VirtualMachine, name="Virtual Machine", description="The Virtual Machine to copy into a template.")
+    new_name = InputSocket(datatype=String, name="New VM Name", description="The name to give to the new VM template.")
+    datastore = InputSocket(datatype=datatypes.Datastore, name="Datastore", description="The datastore where the VM template should be created.")
+    destination_host = OptionalInputSocket(datatype=String, name="Destination ESXi Host", description="The host in ESXi to create this template on. The VM will use the resource pool associated with that host. This is primarily for vCenter systems. If this value is not set: the VM will be created on the same ESXi host as the connection that runs this node.")
+    folder_name = OptionalInputSocket(
+        datatype=String,
+        name="Folder Name",
+        description="The folder to contain the new template. The default is the 'root' VMs folder. Will create a new folder if one is not found with a matching name. Will throw an esxi_utils 'MultipleFoldersFoundError' exception if more than one folder is found with the given name.",
+    )
+
+    output = OutputSocket(
+        datatype=datatypes.VirtualMachine, name="VM Template", description="A template of the VM that can be used to deploy other VMs."
+    )
+
+    def run(self):
+        folder_name = self.folder_name if self.folder_name else None
+        target_host = self.destination_host if self.destination_host else None
+        self.log(
+            f'Creating Template with name: "{self.new_name}" on DataStore "{self.datastore.name}" from a VM called: "{self.vm.name}"...'
+        )
+        self.output = self.vm.clone_to_template(
+            self.new_name,
+            self.datastore,
+            folder_name,
+            target_host,
+        )
+        if target_host:
+            self.debug(f'Created Template "{self.new_name}" on ESXi host "{target_host}" from the VM called "{self.vm.name}".')
+        else:
+            self.debug(f'Created Template "{self.new_name}" from the VM called "{self.vm.name}".')
 
 
 class EsxiVmCreate(Node):

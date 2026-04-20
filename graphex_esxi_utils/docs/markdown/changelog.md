@@ -2,6 +2,11 @@
 
 This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.
 
+## 2.1.0
+
+- Adds new node to clone a VM into a template without the need to fully convert it
+- Bugfix for a regex warning coming from a node description in newer version of python
+
 ## 2.0.0
 
 - Adds new nodes to support new Functionality from Python-ESXi-Utilties 4.0.0
