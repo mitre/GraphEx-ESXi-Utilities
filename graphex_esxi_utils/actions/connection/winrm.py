@@ -538,7 +538,7 @@ class WinRMListFiles(Node):
 
 class WinRMListPackages(Node):
     name: str = "WinRM: List Installed Packages"
-    description: str = "Use an WinRM connection to list the packages installed on the remote system."
+    description: str = "Deprecated: Uses a WinRM connection to list the packages installed on the remote system. This particular variant uses '(Get-WmiObject -Class Win32_Product).Name' and is no longer recommended for usage. Also see 'WinRM: List Installed Registry Packages' for newer version of this node."
     categories: typing.List[str] = ["Remote Connections", "WinRM"]
     color: str = esxi_constants.COLOR_WINRM_CONNECTION
 
@@ -628,7 +628,7 @@ class WinRMRemovePackage(Node):
 
 class WinRMFindAndRemovePackages(Node):
     name: str = "WinRM: Find and Remove Packages"
-    description: str = "Use an WinRM connection to find all packages matching a regex currently installed on the remote system and remove them."
+    description: str = "Deprecated: Use an WinRM connection to find all packages matching a regex currently installed on the remote system and remove them. This particular variant uses '(Get-WmiObject -Class Win32_Product).Name' and is no longer recommended for usage. See the newer version of this node 'WinRM: Find and Remove Packages Using Registry'."
     categories: typing.List[str] = ["Remote Connections", "WinRM"]
     color: str = esxi_constants.COLOR_WINRM_CONNECTION
 
@@ -661,7 +661,7 @@ class WinRMFindAndRemovePackages(Node):
         installed_packages = [pkg for pkg in installed_packages if regex.search(pkg)]
 
         errors = []
-        if len(installed_packages) == 0:
+        if len(installed_packages) <= 0:
             errors.append(RuntimeError(f"No packages matching: {self.regex_filter}"))
 
         for package in installed_packages:
@@ -671,7 +671,7 @@ class WinRMFindAndRemovePackages(Node):
             except Exception as e:
                 errors.append(e)
 
-        self.success = len(errors) == 0
+        self.success = len(errors) <= 0
         if len(errors) > 0:
             error_string = f'Failed to remove packages matching "{self.regex_filter}":\n' + "\n".join([str(err) for err in errors])
             if self.error_on_failure:
@@ -679,6 +679,129 @@ class WinRMFindAndRemovePackages(Node):
             else:
                 self.debug(error_string)
 
+class WinRMListRegistryPackages(Node):
+    name: str = "WinRM: List Installed Registry Packages"
+    description: str = "Use an WinRM connection to list the package metadata installed on the remote system. This particular variant searches the registry against the DisplayName keys of MSI uninstallers. Both custom powershell filters and key value selectors are supported. Also see 'WinRM: List Installed Packages' for the deprecated variant."
+    categories: typing.List[str] = ["Remote Connections", "WinRM"]
+    color: str = esxi_constants.COLOR_WINRM_CONNECTION
+
+    winrmobj = InputSocket(
+        datatype=datatypes.WinRMConnection, name="WinRM Connection", description="A previously opened WinRM connection object to execute over."
+    )
+    str_filter = OptionalInputSocket(
+        datatype=String,
+        name="Powershell Filter",
+        description="The string to use to filter packages. If provided and not empty, only packages matching this filter will be returned. Letter casing may matter here. An example filter is *winlogbeat* where the powershell command will execute 'DisplayName -like *winlogbeat*'",
+    )
+    other_select_str = OptionalInputSocket(
+        datatype=String,
+        name="Select String",
+        description="The key attribute to match on from the result of the filter (or no filter). If nothing is provided here, then 'DisplayName' will be used as the only selector string.",
+    )
+    expand_property_values = InputSocket(
+        datatype=Boolean,
+        name="Show Only Values",
+        description="When True: shows only the values from the resulting 'Select String' (default is 'DisplayName'). Setting this to false may make it easier to determine which keys coorelate to which values when mulitple selectors are present in the 'Select String' input.",
+        input_field=True
+    )
+
+    registry_metadata = OutputSocket(
+        datatype=String, name="Registry Metadata", description="The MSI uninstaller metadata found in the registry based on the filter and selector. This returns as one giant string."
+    )
+    connection = OutputSocket(
+        datatype=datatypes.WinRMConnection,
+        name="WinRM Connection",
+        description="The WinRM Connection (same as input). This maybe be used to 'chain' multiple WinRM operations together.",
+    )
+
+    def log_prefix(self):
+        return f"[{self.name} - {self.winrmobj._ip}] "
+
+    def run(self):
+        str_filter = self.str_filter if self.str_filter else None
+        o_str = self.other_select_str if self.other_select_str else "DisplayName"
+        self.connection = self.winrmobj
+        self.debug(f"Querying registry for metadata against filter '{str_filter}' and selector '{o_str}' ...")
+        registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(self.expand_property_values, filter_str=str_filter, other_select_str=o_str)
+        self.debug(f"Resulting MSI uninstaller metadata: {str(registry_metadata)}")
+        self.registry_metadata = registry_metadata
+
+class WinRMFindAndRemovePackagesRegistry(Node):
+    name: str = "WinRM: Find and Remove Packages Using Registry"
+    description: str = "Use an WinRM connection to find all MSI uninstallers matching a powershell string filter currently located on the remote system's registry and remove them. Also see the deprecated version of this node 'WinRM: Find and Remove Packages'."
+    categories: typing.List[str] = ["Remote Connections", "WinRM"]
+    color: str = esxi_constants.COLOR_WINRM_CONNECTION
+
+    winrmobj = InputSocket(
+        datatype=datatypes.WinRMConnection, name="WinRM Connection", description="A previously opened WinRM connection object to execute over."
+    )
+    str_filter = InputSocket(
+        datatype=String,
+        name="Powershell Filter",
+        description="The string to use to filter packages. Only packages matching this filter will be returned. Letter casing may matter here. An example filter is *winlogbeat* where the powershell command will execute 'DisplayName -like this_filter'",
+    )
+    error_on_failure = InputSocket(
+        datatype=Boolean,
+        name="Error on Failure?",
+        description="Whether to raise an error when a package is not successfully removed, or no matching MSI uninstallers are found. If False, no error will be raised.",
+        input_field=True,
+    )
+
+    success = OutputSocket(datatype=Boolean, name="Success", description="Whether this node succeeded in removing the package(s).")
+    status_code = OutputSocket(datatype=Number, name="Status Code", description="The status code returned from the MSI installer. Common codes are 0 (success), 3010 (success, reboot required), and 1605 (Product not installed). A code of 0 or 3010 will be considered success for this node. The presence of code 1605 would imply a problem with the logic of this node, as it should not attempt the uninstall if no equivalent string is found in the registry.")
+    connection = OutputSocket(
+        datatype=datatypes.WinRMConnection,
+        name="WinRM Connection",
+        description="The WinRM Connection (same as input). This maybe be used to 'chain' multiple WinRM operations together.",
+    )
+
+    def log_prefix(self):
+        return f"[{self.name} - {self.winrmobj._ip}] "
+
+    def run(self):
+        str_filter = self.str_filter
+        o_str = "UninstallString"
+        self.connection = self.winrmobj
+        self.debug(f"Querying registry for metadata against filter '{str_filter}' and selector '{o_str}' ...")
+        registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(expand_property=True, filter_str=str_filter, other_select_str=o_str)
+        self.debug(f"Resulting MSI uninstaller metadata: {str(registry_metadata)}")
+
+        registry_metadata = registry_metadata.strip()
+
+        errors = []
+        if len(registry_metadata) <= 0:
+            errors.append(RuntimeError(f"No packages matching: {str_filter}"))
+
+        matching_values = re.split("\n|\r\n", registry_metadata)
+        self.debug(f"Matching MSI uninstaller strings: {str(matching_values)}")
+
+        if len(matching_values <= 0):
+            errors.append(RuntimeError(f"No packages matching: {str_filter}"))
+        elif len(matching_values > 1):
+            errors.append(RuntimeError(f"More than 1 uninstaller string was found! Will not attempt removal. Found strings: {str(matching_values)}"))
+        else:
+            single_uninstall_str: str = matching_values[0]
+            guid: str = single_uninstall_str.split("/X")[-1]
+            self.log(f"Removing package GUID: '{guid}' matched from filter '{str_filter}'")
+            try:
+                result_tuple = self.winrmobj.uninstall_package_using_registry_guid(guid)
+                status_code = result_tuple[0]
+                self.status_code = status_code
+                self.log(f"Completed with status code: {str(status_code)}")
+                self.debug(f"stdout: {str(result_tuple[1])}")
+                self.debug(f"stderr: {str(result_tuple[2])}")
+                if status_code != 0 and status_code != 3010:
+                    raise Exception(f"An unknown status code was returned from the MSI uninstaller: '{status_code}' ... stdout: '{result_tuple[1]}' ... stderr: '{result_tuple[2]}'")
+            except Exception as e:
+                errors.append(e)
+
+        self.success = len(errors) <= 0
+        if len(errors) > 0:
+            error_string = f'Failed to remove packages matching "{self.str_filter}":\n' + "\n".join([str(err) for err in errors])
+            if self.error_on_failure:
+                raise RuntimeError(error_string)
+            else:
+                self.debug(error_string)
 
 class WinRMStopProcess(Node):
     name: str = "WinRM: Stop Process"
