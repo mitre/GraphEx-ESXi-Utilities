@@ -775,9 +775,9 @@ class WinRMFindAndRemovePackagesRegistry(Node):
         matching_values = re.split("\n|\r\n", registry_metadata)
         self.debug(f"Matching MSI uninstaller strings: {str(matching_values)}")
 
-        if len(matching_values <= 0):
+        if len(matching_values) <= 0:
             errors.append(RuntimeError(f"No packages matching: {str_filter}"))
-        elif len(matching_values > 1):
+        elif len(matching_values) > 1:
             errors.append(RuntimeError(f"More than 1 uninstaller string was found! Will not attempt removal. Found strings: {str(matching_values)}"))
         else:
             single_uninstall_str: str = matching_values[0]
