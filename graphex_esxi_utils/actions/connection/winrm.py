@@ -722,7 +722,7 @@ class WinRMListRegistryPackages(Node):
         o_str = self.other_select_str if self.other_select_str else "DisplayName"
         self.connection = self.winrmobj
         self.debug(f"Querying registry for metadata against filter '{str_filter}' and selector '{o_str}' ...")
-        registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(self.expand_property_values, filter_str=str_filter, other_select_str=o_str)
+        registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(self.expand_property_values, filter_str=str_filter, select_str=o_str)
         self.debug(f"Resulting MSI uninstaller metadata: {str(registry_metadata)}")
         self.registry_metadata = registry_metadata
 
@@ -763,7 +763,7 @@ class WinRMFindAndRemovePackagesRegistry(Node):
         o_str = "UninstallString"
         self.connection = self.winrmobj
         self.debug(f"Querying registry for metadata against filter '{str_filter}' and selector '{o_str}' ...")
-        registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(expand_property=True, filter_str=str_filter, other_select_str=o_str)
+        registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(expand_property=True, filter_str=str_filter, select_str=o_str)
         self.debug(f"Resulting MSI uninstaller metadata: {str(registry_metadata)}")
 
         registry_metadata = registry_metadata.strip()
