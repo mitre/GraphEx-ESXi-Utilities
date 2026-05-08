@@ -696,13 +696,13 @@ class WinRMListRegistryPackages(Node):
     other_select_str = OptionalInputSocket(
         datatype=String,
         name="Select String",
-        description="The key attribute to match on from the result of the filter (or no filter). If nothing is provided here, then 'DisplayName' will be used as the only selector string.",
+        description="The key attribute to match on from the result of the filter (or no filter). For example: 'DisplayName' will show the names of all installed packages according to the registry. The absence of a filter plus a selector and 'Show Only Values' may cause this node to fail if no selector is available for a registry entry.",
     )
     expand_property_values = InputSocket(
         datatype=Boolean,
         name="Show Only Values",
-        description="When True: shows only the values from the resulting 'Select String' (default is 'DisplayName'). Setting this to false may make it easier to determine which keys coorelate to which values when mulitple selectors are present in the 'Select String' input.",
-        input_field=True
+        description="When True: shows only the values from the resulting 'Select String' (default is 'DisplayName'). Setting this to 'False' may make it easier to determine which keys coorelate to which values when mulitple selectors are present in the 'Select String' input. Please note that this node may fail if this is set to 'True' and one of the matches in the registry doesn't have the selector chosen.",
+        input_field=False
     )
 
     registry_metadata = OutputSocket(
@@ -719,7 +719,7 @@ class WinRMListRegistryPackages(Node):
 
     def run(self):
         str_filter = self.str_filter if self.str_filter else None
-        o_str = self.other_select_str if self.other_select_str else "DisplayName"
+        o_str = self.other_select_str if self.other_select_str else None
         self.connection = self.winrmobj
         self.debug(f"Querying registry for metadata against filter '{str_filter}' and selector '{o_str}' ...")
         registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(self.expand_property_values, filter_str=str_filter, select_str=o_str)
