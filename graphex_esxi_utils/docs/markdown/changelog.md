@@ -2,6 +2,14 @@
 
 This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.
 
+## 2.2.0
+
+- Two new WinRM nodes to handle querying and uninstalling packages directly from the registry using GUIDs and the msi command
+    - "WinRM: List Installed Registry Packages"
+    - "WinRM: Find and Remove Packages Using Registry"
+- Deprecates and updates the descriptions of the older nodes using 'Get-WmiObject -Class Win32_Product'
+    - Please transition to using the new nodes as these older nodes may be removed in future releases
+
 ## 2.1.0
 
 - Adds new node to clone a VM into a template without the need to fully convert it

@@ -6,7 +6,24 @@
 <body>
 
 <h1 id="changelog">Changelog</h1>
-<p>This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.</p><h2 id="200">2.0.0</h2>
+<p>This page was created to track changes to versions of GraphEx-ESXi-Utilities. The changelog was created in v1.9.4 and only changes starting from that version are tracked here.</p><h2 id="220">2.2.0</h2>
+<ul>
+<li>Two new WinRM nodes to handle querying and uninstalling packages directly from the registry using GUIDs and the msi command<ul>
+<li>&quot;WinRM: List Installed Registry Packages&quot;</li>
+<li>&quot;WinRM: Find and Remove Packages Using Registry&quot;</li>
+</ul>
+</li>
+<li>Deprecates and updates the descriptions of the older nodes using &#39;Get-WmiObject -Class Win32_Product&#39;<ul>
+<li>Please transition to using the new nodes as these older nodes may be removed in future releases</li>
+</ul>
+</li>
+</ul>
+<h2 id="210">2.1.0</h2>
+<ul>
+<li>Adds new node to clone a VM into a template without the need to fully convert it</li>
+<li>Bugfix for a regex warning coming from a node description in newer version of python</li>
+</ul>
+<h2 id="200">2.0.0</h2>
 <ul>
 <li>Adds new nodes to support new Functionality from Python-ESXi-Utilties 4.0.0<ul>
 <li>VirtualMachine objects are now visible at the inventory level instead of the child host level in vCenter<ul>
