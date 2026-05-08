@@ -748,7 +748,7 @@ class WinRMFindAndRemovePackagesRegistry(Node):
     )
 
     success = OutputSocket(datatype=Boolean, name="Success", description="Whether this node succeeded in removing the package(s).")
-    status_code = OutputSocket(datatype=Number, name="Status Code", description="The status code returned from the MSI installer. Common codes are 0 (success), 3010 (success, reboot required), and 1605 (Product not installed). A code of 0 or 3010 will be considered success for this node. The presence of code 1605 would imply a problem with the logic of this node, as it should not attempt the uninstall if no equivalent string is found in the registry.")
+    status_code = OutputSocket(datatype=Number, name="Status Code", description="The status code returned from the MSI installer. Common codes are 0 (success), 3010 (success, reboot required), and 1605 (Product not installed). A code of 0 or 3010 will be considered success for this node. The presence of code 1605 would imply a problem with the logic of this node, as it should not attempt the uninstall if no equivalent string is found in the registry. The code -1 will be returned if the uninstaller command was never run (i.e. the query was ran and determined the uninstaller does not need to run).")
     connection = OutputSocket(
         datatype=datatypes.WinRMConnection,
         name="WinRM Connection",
@@ -762,6 +762,7 @@ class WinRMFindAndRemovePackagesRegistry(Node):
         str_filter = self.str_filter
         o_str = "UninstallString"
         self.connection = self.winrmobj
+        self.status_code = -1
         self.debug(f"Querying registry for metadata against filter '{str_filter}' and selector '{o_str}' ...")
         registry_metadata: str = self.winrmobj.list_msi_uninstallers_in_registry(expand_property=True, filter_str=str_filter, select_str=o_str)
         self.debug(f"Resulting MSI uninstaller metadata: {str(registry_metadata)}")
