@@ -293,7 +293,7 @@ class EsxiVirtualMachineToolsUploadFile(Node):
     def run(self):
         self.log(f"Uploading file {self.filepath} to {self.dst}")
         with open(self.filepath, mode="rb") as f:
-            self.vm.tools.write_file(username=self.username, password=self.password, filepath=self.filepath, data=f.read())
+            self.vm.tools.write_file(username=self.username, password=self.password, filepath=self.dst, data=f.read())
 
 
 class EsxiVirtualMachineToolsRegexReplaceFile(Node):
