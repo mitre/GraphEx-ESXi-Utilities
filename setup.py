@@ -22,7 +22,7 @@ def read_readme():
 
 setup(
     name="graphex-esxi-utils",
-    version="2.2.0",
+    version="2.2.1",
     author="The MITRE Corporation",
     description="A plugin for adding Python-ESXi-Utilities nodes to graphex.",
     long_description=read_readme(),
